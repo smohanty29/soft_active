@@ -8,9 +8,9 @@ Gem::Specification.new do |gem|
   gem.version       = SoftActive::VERSION
   gem.authors       = ["Sushant Mohanty"]
   gem.email         = ["smohanty@mohantyfamily.org"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
-  gem.homepage      = ""
+  gem.description   = %q{A lighweight soft delete scheme}
+  gem.summary       = %q{A lighweight soft delete scheme}
+  gem.homepage      = "http://github.com/smohanty29/soft_active.git"
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
