@@ -1,5 +1,6 @@
 #!/usr/bin/ruby
 # coding: utf-8
+
 require "soft_active/version"
 require 'ostruct'
 
