@@ -35,11 +35,13 @@ end
 You can also specify column name and other options like here:
 ```ruby
 class Posts < ActiveRecord::Base
-  soft_archive :column => :active
+  soft_archive :column => :active, :dependent_cascade => true
 end
 ```
 
-`:column` by default assumed to be `:aactive` but you can specify your own. At this time it must be a boolean column type. Other types will be supported in future.
+`:column` by default assumed to be `:active` but you can specify your own. At this time it must be a boolean column type. Other types will be supported in future.
+
+`:dependent_cascade` by default assumed to be `false`. If true, any setting and unsetting will cascade to ':dependent => :destroy' associations. Any save after set/unset will also cascade to dependent associations. 
 
 Class/Relation level methods or scopes available:
 
@@ -51,10 +53,12 @@ Class/Relation level methods or scopes available:
 
 `Post.scoped` - Default scope - same as `only_active`
 
+Also a class level method `Post.soft_active?` returns true if soft active is enabled for the model.
 
-### Record soft delete/active
 
-Default records have active as true, but they can be explicitly set and unset.
+### Row operations - soft active/inactive
+
+Default records have active as true, but they can be explicitly set and unset using instance methods.
 
 To set active:
 
