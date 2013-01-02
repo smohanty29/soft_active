@@ -21,7 +21,7 @@ module SoftActive
           next unless association.klass.soft_active?
           objects = instance_variable_get(sa_ivar(instance, association))
           if objects.present? && objects.count > 0
-            objects.map(&:save) 
+            objects.map{|o| o.save!(:validate => false)}
             Rails.logger.info "soft_active dependent association save for #{instance.class.name}/#{instance.id}:#{association.name} updated for #{objects.count} rows"
           end
         end

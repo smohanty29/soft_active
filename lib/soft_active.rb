@@ -28,7 +28,7 @@ module SoftActive
       default_options = {:column => :active, :dependent_cascade => false}
       opts = default_options.merge(options)
       col = opts.delete(:column).to_sym
-      raise ArgumentError, "Column for soft active not present, got #{col}" unless col.present? && self.column_names.include?(col.to_s)
+      #raise ArgumentError, "Column for soft active not present, got #{col}" unless col.present? && self.column_names.include?(col.to_s)
 
       key = col
       _myvar ||= {}
