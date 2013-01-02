@@ -41,7 +41,7 @@ end
 
 `:column` by default assumed to be `:active` but you can specify your own. At this time it must be a boolean column type. Other types will be supported in future.
 
-`:dependent_cascade` by default assumed to be `false`. If true, any setting and unsetting will cascade to ':dependent => :destroy' associations. Any save after set/unset will also cascade to dependent associations. 
+`:dependent_cascade` by default assumed to be `false`. If true, any setting and unsetting will cascade to ':dependent => :destroy' associations. Only direct chindren associations are checked i.e. dependency is ignored if `:through` option is used for the association. Any save after set/unset will also cascade to dependent associations. 
 
 Class/Relation level methods or scopes available:
 

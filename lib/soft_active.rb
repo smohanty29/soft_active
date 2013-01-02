@@ -80,6 +80,8 @@ module SoftActive
   end
 
   module InstanceMethods
+    include SoftActive::Associations::InstanceMethods
+
     RecordNotFound = Class.new(StandardError) unless defined?(RecordNotFound)
 
     private
@@ -87,13 +89,13 @@ module SoftActive
     def set_col_value(parm, val)
       col = parm.col
       raise ArgumentError, "Column for soft active not present, got #{col}" unless col.present? && self.class.column_names.include?(col.to_s)
-      SoftActive::Associations.update_associations(self, parm, val) if parm.options[:dependent_cascade]
+      sa_update_associations(self, parm, val) if parm.options[:dependent_cascade]
       self.send("#{col}=", val)
     end
 
     def save_active_col(parm, obj)
       # save associations 
-      SoftActive::Associations.save_associations(self, parm, obj) if parm.options[:dependent_cascade]
+      sa_save_associations(self, parm, obj) if parm.options[:dependent_cascade]
     end
   end
 
