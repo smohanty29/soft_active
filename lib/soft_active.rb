@@ -2,6 +2,7 @@
 # coding: utf-8
 
 require "soft_active/version"
+require 'soft_active/associations'
 require 'ostruct'
 
 # Requires :boolean attribute named 'active'
@@ -16,8 +17,13 @@ module SoftActive
   end
 
   module ClassMethods
+    def soft_active?
+      self.instance_methods.include? :soft_active_defined?
+    end
+
     def soft_active(options = {})
-      raise ArgumentError, "Hash expected, got #{options.class.name}" unless !options.empty? && options.is_a?(Hash)
+      # options = {:column => :column_name, :dependent_cascade => true|false, :dependent_associations => [:comments, :blogs]}
+      raise ArgumentError, "Hash expected, got #{options.class.name}" unless options.is_a?(Hash)
 
       default_options = {:column => :active}
       opts = default_options.merge(options)
@@ -30,37 +36,39 @@ module SoftActive
       _myvar[key].col = key
       _myvar[key].options = opts
 
-      scope :active_scope, lambda { where("#{self.table_name}.#{col} = ?", true) }
-      scope :inactive_scope, lambda { where("#{self.table_name}.#{col} != ?", true) }
-      default_scope { active_scope }
-
       # dynamic class methods to enable closure
       self.class.instance_eval do
-        define_method "only_inactive" do
-          unscoped.inactive_scope
+        define_method "only_in#{col.to_s}" do
+          unscoped.where("#{self.table_name}.#{col} != ?", true)
         end
 
-        define_method "with_inactive" do
+        define_method "with_in#{col.to_s}" do
           unscoped # Temp - how to retain prev default scope
         end
 
-        define_method "only_active" do
-          unscoped.active_scope
+        define_method "only_#{col.to_s}" do
+          where("#{self.table_name}.#{col} = ?", true) 
         end
       end
 
+      default_scope { self.send "only_#{col.to_s}" }
+
       # dynamic instance methods
       self.class_eval do
-        define_method "set_#{col}" do
+        define_method "set_#{col}" do # unset_active
           set_col(_myvar[key], true)
         end
 
-        define_method "unset_#{col}" do
+        define_method "unset_#{col}" do # unset_active
           set_col(_myvar[key], false)
         end
 
-        define_method "is_active?" do
+        define_method "is_#{col}?" do # is_active?
           self.send("#{col}")
+        end
+
+        define_method "soft_active_defined?" do
+          true
         end
       end
     end
@@ -70,9 +78,12 @@ module SoftActive
     RecordNotFound = Class.new(StandardError) unless defined?(RecordNotFound)
 
     private
+    include SoftActive::Associations::InstanceMethods
+
     def set_col(parm, val)
       col = parm.col
       raise ArgumentError, "Column for soft active not present, got #{col}" unless col.present? && self.class.column_names.include?(col.to_s)
+      update_associations(parm, val)
       self.send("#{col}=", val)
     end
   end
