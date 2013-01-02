@@ -25,7 +25,7 @@ module SoftActive
       # options = {:column => :column_name, :dependent_cascade => true|false, :dependent_associations => [:comments, :blogs]}
       raise ArgumentError, "Hash expected, got #{options.class.name}" unless options.is_a?(Hash)
 
-      default_options = {:column => :active}
+      default_options = {:column => :active, :dependent_cascade => false}
       opts = default_options.merge(options)
       col = opts.delete(:column).to_sym
       raise ArgumentError, "Column for soft active not present, got #{col}" unless col.present? && self.column_names.include?(col.to_s)
@@ -52,15 +52,20 @@ module SoftActive
       end
 
       default_scope { self.send "only_#{col.to_s}" }
+      set_callback :save, :before, lambda {|obj| save_active_col(_myvar[key], obj)}
 
       # dynamic instance methods
       self.class_eval do
+        define_method "set_active_col" do |*args|
+          set_col_value(_myvar[key], *args)
+        end
+
         define_method "set_#{col}" do # unset_active
-          set_col(_myvar[key], true)
+          set_active_col(true)
         end
 
         define_method "unset_#{col}" do # unset_active
-          set_col(_myvar[key], false)
+          set_active_col(false)
         end
 
         define_method "is_#{col}?" do # is_active?
@@ -78,13 +83,17 @@ module SoftActive
     RecordNotFound = Class.new(StandardError) unless defined?(RecordNotFound)
 
     private
-    include SoftActive::Associations::InstanceMethods
 
-    def set_col(parm, val)
+    def set_col_value(parm, val)
       col = parm.col
       raise ArgumentError, "Column for soft active not present, got #{col}" unless col.present? && self.class.column_names.include?(col.to_s)
-      update_associations(parm, val)
+      SoftActive::Associations.update_associations(self, parm, val) if parm.options[:dependent_cascade]
       self.send("#{col}=", val)
+    end
+
+    def save_active_col(parm, obj)
+      # save associations 
+      SoftActive::Associations.save_associations(self, parm, obj) if parm.options[:dependent_cascade]
     end
   end
 
@@ -92,4 +101,6 @@ end
 
 # Extend ActiveRecord's functionality
 ActiveRecord::Base.send :include, SoftActive
+#ActiveRecord::Relation.send :include, SoftActive
+
 
