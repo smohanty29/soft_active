@@ -21,13 +21,13 @@ describe 'SoftActive::Associations' do
 
       class Post < ActiveRecord::Base
         has_many :comments
-        soft_active
+        soft_active :dependent_cascade => true
       end
 
     end
 
     describe "with child association" do
-      it "should not deactivate child rows if w/o depedency" do
+      it "should not deactivate child rows if w/o depedent destroy" do
         post = Post.new(:name => 'Post 1', :active => true)
         post.comments.build(:name => 'Comment 1', :active => true)
         post.save!
@@ -51,6 +51,21 @@ describe 'SoftActive::Associations' do
         post.save!
         expect {Post.find(post.id)}.to raise_error(ActiveRecord::RecordNotFound)
         expect {Comment.find(comment.id)}.to raise_error(ActiveRecord::RecordNotFound)
+      end
+
+      it "should not deactive child with dependent association but without dependent_cascade" do
+        class Post < ActiveRecord::Base
+          has_many :comments, :dependent => :destroy
+          soft_active
+        end
+        post = Post.new(:name => 'Post 1', :active => true)
+        post.comments.build(:name => 'Comment 1', :active => true)
+        post.save!
+        comment = post.comments.first
+        post.unset_active
+        post.save!
+        expect {Post.find(post.id)}.to raise_error(ActiveRecord::RecordNotFound)
+        Comment.find_by_id(comment.id).should eql(comment)
       end
 
       context "with dependent destroy and dependent cascade enabled" do 
