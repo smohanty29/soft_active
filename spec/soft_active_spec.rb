@@ -18,10 +18,6 @@ describe 'SoftActive module' do
       end
 
       Foo = Class.new(ActiveRecord::Base)
-      Foo.send(:soft_active)
-    end
-
-    before :each do
       Foo.soft_active
 
       @active = Foo.create!(:name => 'ACTIVE', :active => true)
