@@ -8,3 +8,6 @@ require 'rubygems'
 require 'active_record'
 
 require 'soft_active'
+
+ActiveRecord::Base.establish_connection(:adapter => "sqlite3", 
+                                       :database => File.dirname(__FILE__) + "/soft_active.sqlite3")
