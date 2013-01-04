@@ -2,28 +2,29 @@ require 'spec_helper'
 
 describe 'SoftActive::Associations' do
   context 'With association models', :db => true do
-    before :all do
+    before :all do      
       ActiveRecord::Migration.create_table :posts, force: true do |t|
         t.string :name
-        t.boolean :active
+        t.boolean :active, :default => true
       end
 
       ActiveRecord::Migration.create_table :comments, force: true do |t|
         t.integer :post_id
         t.string :name
-        t.boolean :active
+        t.boolean :active, :default => true
       end
 
       class Comment < ActiveRecord::Base
         belongs_to :post
         soft_active
       end
+      Comment.reset_column_information
 
       class Post < ActiveRecord::Base
         has_many :comments
         soft_active :dependent_cascade => true
       end
-
+      Post.reset_column_information
     end
 
     describe "with child association" do

@@ -10,7 +10,7 @@ module SoftActive
           end
           objects = sa_fetch_objects(association)
           objects.map{|o| o.set_active_col(val)}
-          SoftActive::Config.logger.debug "soft_active dependent association update for #{self.class.name}/#{self.id}:#{association.name} updated for #{objects.count} rows"
+          SoftActive::Config.logger.debug "soft_active dependent association update for #{self.class.name}/#{self.id}:#{association.name} #{objects.count} rows"
           # may be better way - TODO but for now save under instance var
           instance_variable_set(sa_ivar(association), objects)
         end
@@ -22,7 +22,7 @@ module SoftActive
           objects = instance_variable_get(sa_ivar(association))
           if objects.present? && objects.count > 0
             objects.map{|o| o.save!(:validate => false)}
-            SoftActive::Config.logger.info "soft_active dependent association save for #{self.class.name}/#{self.id}:#{association.name} updated for #{objects.count} rows"
+            SoftActive::Config.logger.info "soft_active dependent association saved for #{self.class.name}/#{self.id}:#{association.name} #{objects.count} rows"
           end
         end
       end
