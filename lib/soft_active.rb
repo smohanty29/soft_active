@@ -27,13 +27,13 @@ module SoftActive
       raise ArgumentError, "Hash expected, got #{options.class.name}" unless options.is_a?(Hash)
 
       default_options = {:column => :active, :dependent_cascade => false}
-      opts = default_options.merge(options)
+      opts = default_options.merge(options).dup
       col = opts.delete(:column).to_sym
       #raise ArgumentError, "Column for soft active not present, got #{col}" unless col.present? && self.column_names.include?(col.to_s)
 
       key = col
       _myvar ||= {}
-      _myvar[key] ||= OpenStruct.new
+      _myvar[key] = OpenStruct.new
       _myvar[key].col = key
       _myvar[key].options = opts
 
