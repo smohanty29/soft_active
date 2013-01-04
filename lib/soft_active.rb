@@ -10,7 +10,6 @@ require 'ostruct'
 # Warning, this sets default_scope to :only_active,
 #   overriding any existing default_scope
 
-#TODO: use http://apidock.com/rails/ActiveSupport/Concern
 module SoftActive
   def self.included(klass)
     klass.extend SoftActive::ClassMethods
@@ -19,30 +18,30 @@ module SoftActive
 
   module ClassMethods
     def soft_active?
-      self.instance_methods.include? :soft_active_defined?
+      self.instance_methods.include? :soft_active_defined? # we want to ensure no errors in config
+    end
+
+    def soft_active_config
+      return self.sa_config if soft_active?
+      nil
     end
 
     def soft_active(options = {})
       # options = {:column => :column_name, :dependent_cascade => true|false, :dependent_associations => [:comments, :blogs]}
       raise ArgumentError, "Hash expected, got #{options.class.name}" unless options.is_a?(Hash)
+      class_attribute :sa_config
 
       default_options = {:column => :active, :dependent_cascade => false}
       opts = default_options.merge(options).dup
       col = opts.delete(:column).to_sym
       #raise ArgumentError, "Column for soft active not present, got #{col}" unless col.present? && self.column_names.include?(col.to_s)
 
-      key = col
-      _myvar ||= {}
-      _myvar[key] = OpenStruct.new
-      _myvar[key].col = key
-      _myvar[key].options = opts
+      self.sa_config = OpenStruct.new
+      self.sa_config.col = col
+      self.sa_config.options = opts
 
       # dynamic class methods to enable closure
       self.class.instance_eval do
-        define_method "sa_#{col.to_s}_config" do
-          _myvar[key]
-        end
-
         define_method "only_in#{col.to_s}" do
           unscoped.where("#{self.table_name}.#{col} != ?", true)
         end
@@ -57,12 +56,13 @@ module SoftActive
       end
 
       default_scope { self.send "only_#{col.to_s}" }
-      set_callback :save, :before, lambda {|obj| save_active_col(_myvar[key], obj)}
+      set_callback :save, :before, lambda {|obj| save_active_col(self.sa_config, obj)}
 
       # dynamic instance methods
       self.class_eval do
+
         define_method "set_active_col" do |*args|
-          set_col_value(_myvar[key], *args)
+          set_col_value(self.class.sa_config, *args)
         end
 
         define_method "set_#{col}" do # unset_active
