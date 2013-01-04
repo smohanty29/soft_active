@@ -39,6 +39,10 @@ module SoftActive
 
       # dynamic class methods to enable closure
       self.class.instance_eval do
+        define_method "sa_#{col.to_s}_config" do
+          _myvar[key]
+        end
+
         define_method "only_in#{col.to_s}" do
           unscoped.where("#{self.table_name}.#{col} != ?", true)
         end

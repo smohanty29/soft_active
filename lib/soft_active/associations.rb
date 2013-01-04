@@ -9,8 +9,8 @@ module SoftActive
             next
           end
           objects = sa_fetch_objects(association)
-          objects.map{|o| o.set_active_col(val)}
-          SoftActive::Config.logger.debug "soft_active dependent association update for #{self.class.name}/#{self.id}:#{association.name} #{objects.count} rows"
+          objects.each{|o| o.set_active_col(val)}
+          SoftActive::Config.logger.debug "soft_active dependent association update for #{self.class.name}/#{self.id}:#{association.name} potentially #{objects.count} rows"
           # may be better way - TODO but for now save under instance var
           instance_variable_set(sa_ivar(association), objects)
         end
@@ -20,9 +20,14 @@ module SoftActive
         sa_activable_associations.each do |association|
           next unless association.klass.soft_active?
           objects = instance_variable_get(sa_ivar(association))
+          cnt = 0
           if objects.present? && objects.count > 0
-            objects.map{|o| o.save!(:validate => false)}
-            SoftActive::Config.logger.info "soft_active dependent association saved for #{self.class.name}/#{self.id}:#{association.name} #{objects.count} rows"
+            objects.each do |o| 
+              if o.changed? # save only if record changed, I think AR does this auto but we want the counts
+                o.save!(:validate => false); cnt += 1
+              end
+            end
+            SoftActive::Config.logger.info "soft_active dependent association saved for #{self.class.name}/#{self.id}:#{association.name} #{cnt} rows" if cnt > 0
           end
         end
       end
